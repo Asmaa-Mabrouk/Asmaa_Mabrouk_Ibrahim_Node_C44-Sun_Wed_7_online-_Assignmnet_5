@@ -1,0 +1,20 @@
+{
+  "name": "asmaa_mabrouk_ibrahim_node_c44-sun_wed_7_online-_assignmnet_5",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Assignment_5.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "mysql2": "^3.14.3",
+    "sqlite3": "^5.1.7"
+  }
+}
