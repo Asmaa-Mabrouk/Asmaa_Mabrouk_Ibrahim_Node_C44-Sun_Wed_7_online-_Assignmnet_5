@@ -14,7 +14,7 @@ router.post('/', (req, res) => {
       res.send({ message: 'Products added', rows: result.affectedRows });
     })
     .catch(err => {
-      console.error('Product insert error:', err);
+      console.error('❌ Product insert error:', err);
       res.status(500).send(err);
     });
 });
@@ -26,7 +26,7 @@ router.put('/bread', (req, res) => {
       res.send({ message: 'Bread price updated' });
     })
     .catch(err => {
-      console.error('Bread update error:', err);
+      console.error('❌ Bread update error:', err);
       res.status(500).send(err);
     });
 });
@@ -38,7 +38,7 @@ router.delete('/eggs', (req, res) => {
       res.send({ message: 'Eggs product deleted' });
     })
     .catch(err => {
-      console.error('Eggs delete error:', err);
+      console.error('❌ Eggs delete error:', err);
       res.status(500).send(err);
     });
 });
@@ -50,7 +50,7 @@ router.get('/top-stock', (req, res) => {
       res.send(rows[0] || {});
     })
     .catch(err => {
-      console.error('Top stock error:', err);
+      console.error('❌ Top stock error:', err);
       res.status(500).send(err);
     });
 });
@@ -62,7 +62,7 @@ router.get('/unsold', (req, res) => {
       res.send(rows);
     })
     .catch(err => {
-      console.error('Unsold products error:', err);
+      console.error('❌ Unsold products error:', err);
       res.status(500).send(err);
     });
 });
@@ -71,7 +71,7 @@ router.get('/unsold', (req, res) => {
 router.get('/', (req, res) => {
   getAllProducts((err, products) => {
     if (err) {
-      console.error('Get products error:', err);
+      console.error('❌ Get products error:', err);
       return res.status(500).send(err);
     }
     res.send(products);

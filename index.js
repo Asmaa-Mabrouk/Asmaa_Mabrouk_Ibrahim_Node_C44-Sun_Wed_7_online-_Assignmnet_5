@@ -7,9 +7,15 @@ app.use(express.json());
 // Routes
 const productRoutes = require('./src/Modules/Products/products.controller');
 const salesRoutes = require('./src/Modules/Sales/sales.controller');
+const supplierRoutes = require('./src/Modules/Suppliers/supplier.controller');
+const userRoutes = require('./src/Modules/Users/users.controller');
+const tableRoutes = require('./src/Modules/Tables/tables.controller');
 
 app.use('/api/products', productRoutes);
 app.use('/api/sales', salesRoutes);
+app.use('/api/suppliers', supplierRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/tables', tableRoutes);
 
 // Supplier APIs 
 app.post('/api/suppliers', (req, res) => {

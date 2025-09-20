@@ -36,4 +36,5 @@ module.exports = {
   insertProducts, 
   updateBreadPrice, 
   deleteEggs,
-  getAllProducts } ; 
+  getAllProducts
+};
