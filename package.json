@@ -1,14 +1,14 @@
 {
   "name": "asmaa_mabrouk_ibrahim_node_c44-sun_wed_7_online-_assignmnet_5",
   "version": "1.0.0",
-  "description": "",
-  "main": "Assignment_5.js",
+  "description": "Retail Store Management System - Node.js API with MySQL",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Asmaa Mabrouk Ibrahim",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {

@@ -1,63 +1,67 @@
 const express = require('express');
+const pool = require('../../DB/connection'); 
 const router = express.Router();
-const pool = require('../../DB/connection');
-const { getAllSales } = require('./Services/sales.service');
+const {
+  addSaleService,
+  getSalesService,
+  getTotalSoldService,
+  deleteSaleService
+} = require('./Services/sales.service');
 
 // Record new sale
-router.post('/', (req, res) => {
-  const { ProductID, QuantitySold, SaleDate } = req.body;
-  
-  pool.query(`INSERT INTO Sales (ProductID, QuantitySold, SaleDate) VALUES (?, ?, ?)`,
-    [ProductID, QuantitySold, SaleDate])
-    .then(([result]) => {
-      res.send({ message: 'Sale added', SaleID: result.insertId });
-    })
-    .catch(err => {
-      console.error('Sale insert error:', err);
-      res.status(500).send(err);
-    });
+router.post("/", async (req, res) => {
+  try {
+    const result = await addSaleService(req.body);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 // Get total sold per product
-router.get('/total-sold', (req, res) => {
-  const sql = `
-    SELECT P.ProductName, SUM(S.QuantitySold) AS TotalSold
-    FROM Sales S
-    JOIN Products P ON S.ProductID = P.ProductID
-    GROUP BY S.ProductID
-  `;
-  
-  pool.query(sql)
-    .then(([rows]) => {
-      res.send(rows);
-    })
-    .catch(err => {
-      console.error('Total sold error:', err);
-      res.status(500).send(err);
-    });
+router.get("/total-sold", async (req, res) => {
+  try {
+    const rows = await getTotalSoldService();
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Get all sales with product details
-router.get('/all', (req, res) => {
-  getAllSales((err, sales) => {
-    if (err) {
-      console.error('Get sales error:', err);
-      return res.status(500).send(err);
-    }
-    res.send(sales);
-  });
+router.get("/", async (req, res) => {
+  try {
+    const rows = await getSalesService();
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Delete sale
-router.delete('/:id', (req, res) => {
-  pool.query('DELETE FROM Sales WHERE SaleID = ?', [req.params.id])
-    .then(() => {
-      res.send({ message: 'Sale deleted' });
-    })
-    .catch(err => {
-      console.error('Sale delete error:', err);
-      res.status(500).send(err);
-    });
+// Delete sale by ID
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const [saleRows] = await pool.query(
+      'SELECT ProductID, QuantitySold FROM Sales WHERE SaleID = ?',
+      [id]
+    );
+    if (saleRows.length === 0) {
+      return res.status(404).json({ error: "Sale not found" });
+    }
+    const { ProductID, QuantitySold } = saleRows[0];
+    await pool.query('DELETE FROM Sales WHERE SaleID = ?', [id]);
+    await pool.query(
+      'UPDATE Products SET StockQuantity = StockQuantity + ? WHERE ProductID = ?',
+      [QuantitySold, ProductID]
+    );
+
+    res.json({ message: "Sale deleted and stock restored" });
+  } catch (err) {
+    console.error("Sale delete error:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

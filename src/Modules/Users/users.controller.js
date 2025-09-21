@@ -1,47 +1,39 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const {
-    createUserService,
-    grantPermissionService,
-    revokePermissionService
-} = require('./Services/users.services');
+  createUserService,
+  grantPermissionService,
+  revokePermissionService
+} = require("./Services/users.services");
 
-// POST /users/create
-const createUser = async (req, res) => {
-    try {
-        const { username, password, permissions } = req.body;
-        const newUser = createUserService({ username, password, permissions });
-        res.json({ message: "User created successfully", user: newUser });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-};
+// Create user
+router.post("/create", (req, res) => {
+  try {
+    const result = createUserService(req.body);
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
-// POST /users/grant
-const grantPermission = async (req, res) => {
-    try {
-        const { username, permission } = req.body;
-        const updatedUser = grantPermissionService({ username, permission });
-        res.json({ message: "Permission granted", user: updatedUser });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-};
+// Grant permission
+router.post("/grant", (req, res) => {
+  try {
+    const result = grantPermissionService(req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
-// POST /users/revoke
-const revokePermission = async (req, res) => {
-    try {
-        const { username, permission } = req.body;
-        const updatedUser = revokePermissionService({ username, permission });
-        res.json({ message: "Permission revoked", user: updatedUser });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-};
-
-// Define routes
-router.post('/create', createUser);
-router.post('/grant', grantPermission);
-router.post('/revoke', revokePermission);
+// Revoke permission
+router.post("/revoke", (req, res) => {
+  try {
+    const result = revokePermissionService(req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
 
 module.exports = router;

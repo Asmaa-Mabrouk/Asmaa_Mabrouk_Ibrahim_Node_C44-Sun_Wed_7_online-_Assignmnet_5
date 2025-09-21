@@ -1,50 +1,57 @@
 const pool = require('../../../DB/connection');
 
-const insertSale = (sale) => {
+// Add new sale with stock check
+const addSaleService = async (sale) => {
+  if (!sale.ProductID || !sale.QuantitySold || !sale.SaleDate) {
+    throw new Error("ProductID, QuantitySold, and SaleDate are required");
+  }
+
+  const [product] = await pool.query("SELECT StockQuantity FROM Products WHERE ProductID = ?", [sale.ProductID]);
+  if (product.length === 0) throw new Error("Product not found");
+
+  if (product[0].StockQuantity < sale.QuantitySold) {
+    throw new Error("Not enough stock available for this sale");
+  }
+
   const sql = 'INSERT INTO Sales (ProductID, QuantitySold, SaleDate) VALUES (?, ?, ?)';
-  
-  pool.query(sql, [sale.ProductID, sale.QuantitySold, sale.SaleDate])
-    .then(result => console.log('Sale inserted:', result[0].insertId))
-    .catch(err => console.error('Sale insert error:', err));
+  const [result] = await pool.query(sql, [sale.ProductID, sale.QuantitySold, sale.SaleDate]);
+
+  await pool.query("UPDATE Products SET StockQuantity = StockQuantity - ? WHERE ProductID = ?", [sale.QuantitySold, sale.ProductID]);
+
+  return { SaleID: result.insertId, ...sale };
 };
 
-const getTotalSold = () => {
+const getSalesService = async () => {
+  const sql = `
+    SELECT S.SaleID, P.ProductName, S.SaleDate, S.QuantitySold
+    FROM Sales S
+    JOIN Products P ON S.ProductID = P.ProductID
+  `;
+  const [rows] = await pool.query(sql);
+  return rows;
+};
+
+const getTotalSoldService = async () => {
   const sql = `
     SELECT P.ProductName, SUM(S.QuantitySold) AS TotalSold
     FROM Sales S
     JOIN Products P ON S.ProductID = P.ProductID
     GROUP BY S.ProductID
   `;
-  
-  pool.query(sql)
-    .then(([rows]) => console.table(rows))
-    .catch(err => console.error('Total sold error:', err));
+  const [rows] = await pool.query(sql);
+  return rows;
 };
 
-const getHighestStock = () => {
-  const sql = 'SELECT * FROM Products ORDER BY StockQuantity DESC LIMIT 1';
-  
-  pool.query(sql)
-    .then(([rows]) => console.log('Highest stock product:', rows[0]))
-    .catch(err => console.error('Highest stock error:', err));
+const deleteSaleService = async (id) => {
+  const [result] = await pool.query("DELETE FROM Sales WHERE SaleID = ?", [id]);
+  if (result.affectedRows === 0) throw new Error("Sale not found");
+  return { message: "Sale deleted successfully" };
 };
 
-// Get all sales with product details
-const getAllSales = (callback) => {
-  const sql = `
-    SELECT S.SaleID, P.ProductName, S.SaleDate, S.QuantitySold
-    FROM Sales S
-    JOIN Products P ON S.ProductID = P.ProductID
-  `;
-  
-  pool.query(sql)
-    .then(([rows]) => callback(null, rows))
-    .catch(err => callback(err));
+module.exports = {
+  addSaleService,
+  getSalesService,
+  getTotalSoldService,
+  deleteSaleService
 };
 
-module.exports = { 
-  insertSale, 
-  getTotalSold, 
-  getHighestStock,
-  getAllSales
-};

@@ -1,48 +1,48 @@
 const pool = require('../../../DB/connection');
 
-// Handle table alterations dynamically
 const alterTableService = async ({ table, action, column, type }) => {
-    if (!table || !action) {
-        throw new Error("Table and action are required");
-    }
+  if (!table || !action || !column) {
+    throw new Error("Table, action, and column are required");
+  }
 
-    // Validate table name (basic security check)
-    const validTables = ['Products', 'Sales', 'Suppliers'];
-    if (!validTables.includes(table)) {
-        throw new Error(`Invalid table name. Allowed tables: ${validTables.join(', ')}`);
-    }
+  // Security: Whitelist allowed tables
+  const allowedTables = ['Products', 'Sales', 'Suppliers'];
+  if (!allowedTables.includes(table)) {
+    throw new Error(`Table operations only allowed on: ${allowedTables.join(', ')}`);
+  }
 
-    let sql;
-    switch (action) {
-        case "add-column":
-            if (!column || !type) throw new Error("Column name and type are required for add-column action");
-            sql = `ALTER TABLE ${table} ADD COLUMN ${column} ${type}`;
-            break;
-        case "remove-column":
-            if (!column) throw new Error("Column name is required for remove-column action");
-            sql = `ALTER TABLE ${table} DROP COLUMN ${column}`;
-            break;
-        case "change-column":
-            if (!column || !type) throw new Error("Column name and type are required for change-column action");
-            sql = `ALTER TABLE ${table} MODIFY COLUMN ${column} ${type}`;
-            break;
-        case "add-notnull":
-            if (!column || !type) throw new Error("Column name and type are required for add-notnull action");
-            sql = `ALTER TABLE ${table} MODIFY ${column} ${type} NOT NULL`;
-            break;
-        default:
-            throw new Error("Invalid action. Allowed actions: add-column, remove-column, change-column, add-notnull");
-    }
+  const allowedActions = ["ADD", "DROP", "MODIFY"];
+  if (!allowedActions.includes(action.toUpperCase())) {
+    throw new Error("Invalid action. Use ADD, DROP, or MODIFY");
+  }
 
-    try {
-        await pool.query(sql);
-        return { message: `Table ${table} altered successfully`, action, column, type };
-    } catch (error) {
-        console.error('Database alteration error:', error);
-        throw new Error(`Failed to alter table: ${error.message}`);
-    }
+  let sql;
+  switch (action.toUpperCase()) {
+    case "ADD":
+      if (!type) throw new Error("Column type required for ADD");
+      sql = `ALTER TABLE ${table} ADD COLUMN ${column} ${type}`;
+      break;
+    case "DROP":
+      sql = `ALTER TABLE ${table} DROP COLUMN ${column}`;
+      break;
+    case "MODIFY":
+      if (!type) throw new Error("Column type required for MODIFY");
+      sql = `ALTER TABLE ${table} MODIFY COLUMN ${column} ${type}`;
+      break;
+  }
+
+  try {
+    await pool.query(sql);
+    return { 
+      message: `Table ${table} altered successfully`,
+      operation: { table, action: action.toUpperCase(), column, type }
+    };
+  } catch (error) {
+    console.error('Table alteration error:', error);
+    throw new Error(`Failed to alter table: ${error.message}`);
+  }
 };
 
 module.exports = {
-    alterTableService
+  alterTableService
 };
